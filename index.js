@@ -12,7 +12,7 @@ function resize() {
 resize();
 addEventListener("resize", resize);
 let x = 400;
-let y = 400;
+let y = 200;
 let r = 50;
 
 
@@ -21,17 +21,18 @@ let r = 50;
 // view.lineTo(100, 100);
 
 // view.fillRect(10, 10, 20, 20);
-let ax = 0;
-let ay = 0.01;
-let dx = 0;
-let dy = 0;
+let ax = 0.01;
+let ay = 0.09;
+let dx = -2;
+let dy = -2;
 function animate() {
     view.clearRect(0, 0, canvas.width, canvas.height);
-    dx += ax;
-    dy += ay;
+    // dx += ax;
+    // dy += ay;
     x += dx;
     y += dy;
-    checkBounce();
+    // checkBounce();
+    checkWrap();
     view.beginPath();
     view.arc(x, y, r, 0, Math.PI * 2);
     view.fill();
@@ -39,10 +40,43 @@ function animate() {
 }
 
 function checkBounce() {
-    if (y + r >= canvas.height) {
+    if (y + r >= canvas.height){
         y = canvas.height - r;
-        dy *= -0.9;
+     dy *= -1;
     }
+    if (x + r >= canvas.width){
+        x = canvas.width - r;
+        dx *= -1;
+    };
+        if (y - r < 0){
+        y =  r;
+     dy *= -1;
+    };
+    if (x - r < 0){
+        x = r;
+        dx *= -1;
+    };
+
 }
 
+
+function checkWrap(){
+    if ( y - r >= canvas.height){
+        y = -r;
+    }
+    else
+      if ( x - r >= canvas.width){
+        x = -r;
+    }
+    else
+    if (y + r <= 0 ){
+        y = canvas.height + r
+    }
+    else
+        if (x + r <= 0 ){
+        x = canvas.width + r
+    }
+
+
+}
 animate();
