@@ -47,12 +47,53 @@ class Body {
     }
 }
 
+class Triangle {
+        constructor(x, y, r){
+        this.x = x
+        this.y = y
+        this.radius = r
+        this.dx = 0
+        this.dy = 0
+        this.angle = 0
+    }
+    draw(){
+        const originalX = this.x
+        const originalY = this.y -20
+        const frontTip = rotatePoint(originalX, originalY, this.x , this.y, this.angle)
+        const secondTip =rotatePoint(originalX, originalY, this.x , this.y, this.angle + 2.5)
+        const thirdTip =rotatePoint(originalX, originalY, this.x , this.y, this.angle -2.5)
+
+        view.beginPath()
+        // view.fillRect(frontTip.x, frontTip.y , 5, 5)
+        // view.fillRect(secondTip.x ,secondTip.y, 5, 5)
+        // view.fillRect(thirdTip.x, thirdTip.y , 5,5 )
+        view.moveTo(frontTip.x , frontTip.y)
+        view.lineTo(secondTip.x , secondTip.y)
+         view.lineTo(this.x , this.y)
+         view.lineTo(thirdTip.x , thirdTip.y)
+         view.lineTo(frontTip.x, frontTip.y)
+        view.closePath()
+        view.fill()
+        view.beginPath()
+        view.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        view.fill()
+    }
+    update () {
+        this.angle += 0.01
+    }
+
+
+};
+resize();
+const triangle = new Triangle(canvas.width/2 , canvas.height/2, 6);
+
+
 const bodies = []
-for (let i = 0; i <= 100; i++){
-    bodies.push(new Body(400, 400, Math.random() * 20 + 5))
+for (let i = 0; i < 2; i++){
+    bodies.push(new Body(400, 400, 40))
 }
 
-resize();
+
 addEventListener("resize", resize);
 let x = 400;
 let y = 200;
@@ -80,7 +121,8 @@ function animate() {
 
     for(const b of bodies) b.update();
     for(const b of bodies) b.draw();
-
+    triangle.update();
+    triangle.draw();
     requestAnimationFrame(animate);
 }
 
@@ -122,3 +164,21 @@ function checkWrap(){
 animate();
 
 
+function rotatePoint(px, py, ox, oy, angleRadians) {
+  // Convert angle from degrees to radians
+ 
+
+  // Translate point to origin
+  const translatedX = px - ox;
+  const translatedY = py - oy;
+
+  // Apply rotation
+  const rotatedX = translatedX * Math.cos(angleRadians) - translatedY * Math.sin(angleRadians);
+  const rotatedY = translatedX * Math.sin(angleRadians) + translatedY * Math.cos(angleRadians);
+
+  // Translate back
+  const finalX = rotatedX + ox;
+  const finalY = rotatedY + oy;
+
+  return { x: finalX, y: finalY };
+}
