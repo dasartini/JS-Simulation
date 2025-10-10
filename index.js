@@ -8,11 +8,26 @@ function resize() {
     view.fillStyle = "white";
     view.strokeStyle = "white";
 }
+class Keyboard{
+    static keys = {}
+    
+    static {
+        window.addEventListener("keydown", e => Keyboard.keys[e.code] = true)
+        window.addEventListener("keyup", e => Keyboard.keys[e.code] = false)
+    }
+
+    static get left(){
+        return !!Keyboard.keys.KeyA
+    }
+    static get right(){
+        return !!Keyboard.keys.KeyD
+    }
+}
 
 class Body {
-    constructor(x, y, r = 10){
-        this.x = x
-        this.y = y
+    constructor(r = 10, x, y){
+        this.x = x | Math.random() * canvas.width
+        this.y = y | Math.random() * canvas.height
         this.radius = r
         this.dx = Math.random() * 4 - 2
         this.dy = Math.random() * 4 - 2
@@ -20,7 +35,8 @@ class Body {
     update(){
         this.x += this.dx
         this.y += this.dy
-        this.checkBounce()
+        // this.checkBounce()
+        this.checkWrap();
     }
     draw(){
         view.beginPath();
@@ -45,6 +61,20 @@ class Body {
             this.dx *= -1;
         };
     }
+    checkWrap(){
+        if (this.y - this.radius >= canvas.height){
+            this.y = -this.radius;
+        }
+        else if (this.x - this.radius >= canvas.width){
+            this.x = -this.radius;
+        }
+        else if (this.y + this.radius <= 0 ){
+            this.y = canvas.height + this.radius
+        }
+        else if (this.x + this.radius <= 0 ){
+            this.x = canvas.width + this.radius
+        }
+    }
 }
 
 class Triangle {
@@ -58,10 +88,10 @@ class Triangle {
     }
     draw(){
         const originalX = this.x
-        const originalY = this.y -20
+        const originalY = this.y - 20
         const frontTip = rotatePoint(originalX, originalY, this.x , this.y, this.angle)
         const secondTip =rotatePoint(originalX, originalY, this.x , this.y, this.angle + 2.5)
-        const thirdTip =rotatePoint(originalX, originalY, this.x , this.y, this.angle -2.5)
+        const thirdTip =rotatePoint(originalX, originalY, this.x , this.y, this.angle - 2.5)
 
         view.beginPath()
         // view.fillRect(frontTip.x, frontTip.y , 5, 5)
@@ -69,9 +99,9 @@ class Triangle {
         // view.fillRect(thirdTip.x, thirdTip.y , 5,5 )
         view.moveTo(frontTip.x , frontTip.y)
         view.lineTo(secondTip.x , secondTip.y)
-         view.lineTo(this.x , this.y)
-         view.lineTo(thirdTip.x , thirdTip.y)
-         view.lineTo(frontTip.x, frontTip.y)
+        view.lineTo(this.x , this.y)
+        view.lineTo(thirdTip.x , thirdTip.y)
+        view.lineTo(frontTip.x, frontTip.y)
         view.closePath()
         view.fill()
         view.beginPath()
@@ -79,7 +109,8 @@ class Triangle {
         view.fill()
     }
     update () {
-        this.angle += 0.01
+        if (Keyboard.right) this.angle += 0.05
+        if (Keyboard.left) this.angle -= 0.05
     }
 
 
@@ -90,7 +121,7 @@ const triangle = new Triangle(canvas.width/2 , canvas.height/2, 6);
 
 const bodies = []
 for (let i = 0; i < 2; i++){
-    bodies.push(new Body(400, 400, 40))
+    bodies.push(new Body(40))
 }
 
 
