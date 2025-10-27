@@ -8,77 +8,86 @@ function resize() {
     view.fillStyle = "white";
     view.strokeStyle = "white";
 }
-class Keyboard{
+class Keyboard {
     static keys = {}
-    
-    static {
-        window.addEventListener("keydown", e => Keyboard.keys[e.code] = true)
-        window.addEventListener("keyup", e => Keyboard.keys[e.code] = false)
-    }
 
-    static get left(){
+    static {
+        window.addEventListener("keydown", e => { if (!e.repeat) Keyboard.keys[e.code] = true })
+        window.addEventListener("keyup", e => Keyboard.keys[e.code] = false)
+
+    }
+    static keyOnce(key) {
+        const down = !!Keyboard.keys[key]
+        Keyboard.keys[key] = false
+        return down
+    }
+    static get left() {
         return !!Keyboard.keys.KeyA
     }
-    static get right(){
+    static get right() {
         return !!Keyboard.keys.KeyD
     }
+    static get fire() {
+        return !!Keyboard.keyOnce('Space')
+    }
+
 }
 
 class Body {
-    constructor(r = 10, x, y){
+    constructor(r = 10, x, y) {
         this.x = x | Math.random() * canvas.width
         this.y = y | Math.random() * canvas.height
         this.radius = r
         this.dx = Math.random() * 4 - 2
         this.dy = Math.random() * 4 - 2
     }
-    update(){
+    update() {
         this.x += this.dx
         this.y += this.dy
         // this.checkBounce()
         this.checkWrap();
     }
-    draw(){
+    draw() {
         view.beginPath();
         view.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         view.fill();
     }
-    checkBounce(){
-        if (this.y + this.radius >= canvas.height){
+    checkBounce() {
+        if (this.y + this.radius >= canvas.height) {
             this.y = canvas.height - this.radius;
             this.dy *= -1;
         }
-        if (this.x + this.radius >= canvas.width){
+        if (this.x + this.radius >= canvas.width) {
             this.x = canvas.width - this.radius;
             this.dx *= -1;
         };
-        if (this.y - this.radius < 0){
-            this.y =  this.radius;
+        if (this.y - this.radius < 0) {
+            this.y = this.radius;
             this.dy *= -1;
         };
-        if (this.x - this.radius < 0){
+        if (this.x - this.radius < 0) {
             this.x = this.radius;
             this.dx *= -1;
         };
     }
-    checkWrap(){
-        if (this.y - this.radius >= canvas.height){
+    checkWrap() {
+        if (this.y - this.radius >= canvas.height) {
             this.y = -this.radius;
         }
-        else if (this.x - this.radius >= canvas.width){
+        else if (this.x - this.radius >= canvas.width) {
             this.x = -this.radius;
         }
-        else if (this.y + this.radius <= 0 ){
+        else if (this.y + this.radius <= 0) {
             this.y = canvas.height + this.radius
         }
-        else if (this.x + this.radius <= 0 ){
+        else if (this.x + this.radius <= 0) {
             this.x = canvas.width + this.radius
         }
     }
 }
 
 class Triangle {
-        constructor(x, y, r){
+    constructor(x, y, r) {
         this.x = x
         this.y = y
         this.radius = r
@@ -86,21 +95,21 @@ class Triangle {
         this.dy = 0
         this.angle = 0
     }
-    draw(){
+    draw() {
         const originalX = this.x
         const originalY = this.y - 20
-        const frontTip = rotatePoint(originalX, originalY, this.x , this.y, this.angle)
-        const secondTip =rotatePoint(originalX, originalY, this.x , this.y, this.angle + 2.5)
-        const thirdTip =rotatePoint(originalX, originalY, this.x , this.y, this.angle - 2.5)
+        const frontTip = rotatePoint(originalX, originalY, this.x, this.y, this.angle)
+        const secondTip = rotatePoint(originalX, originalY, this.x, this.y, this.angle + 2.5)
+        const thirdTip = rotatePoint(originalX, originalY, this.x, this.y, this.angle - 2.5)
 
         view.beginPath()
         // view.fillRect(frontTip.x, frontTip.y , 5, 5)
         // view.fillRect(secondTip.x ,secondTip.y, 5, 5)
         // view.fillRect(thirdTip.x, thirdTip.y , 5,5 )
-        view.moveTo(frontTip.x , frontTip.y)
-        view.lineTo(secondTip.x , secondTip.y)
-        view.lineTo(this.x , this.y)
-        view.lineTo(thirdTip.x , thirdTip.y)
+        view.moveTo(frontTip.x, frontTip.y)
+        view.lineTo(secondTip.x, secondTip.y)
+        view.lineTo(this.x, this.y)
+        view.lineTo(thirdTip.x, thirdTip.y)
         view.lineTo(frontTip.x, frontTip.y)
         view.closePath()
         view.fill()
@@ -108,21 +117,56 @@ class Triangle {
         view.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         view.fill()
     }
-    update () {
+    update() {
         if (Keyboard.right) this.angle += 0.05
         if (Keyboard.left) this.angle -= 0.05
+        if (Keyboard.fire) {
+            const projectile = new Projectile(this.x, this.y, this.angle)
+            projectiles.push(projectile)
+        }
     }
 
 
 };
+
+class Projectile {
+    constructor(x, y, angle) {
+        this.angle = angle - Math.PI / 2
+        this.x = x
+        this.y = y
+        this.speed = 5
+        this.dx = Math.cos(this.angle) * this.speed
+        this.dy = Math.sin(this.angle) * this.speed
+        this.radius = 2
+        this.ttl = 90
+    }
+    update() {
+        if (this.ttl > 0) {
+            this.x += this.dx
+            this.y += this.dy
+            this.ttl -= 1
+        }
+
+    }
+    draw() {
+        if (this.ttl > 0) {
+            view.beginPath();
+            view.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            view.fill();
+
+        }
+    }
+}
+
 resize();
-const triangle = new Triangle(canvas.width/2 , canvas.height/2, 6);
+const triangle = new Triangle(canvas.width / 2, canvas.height / 2, 6);
 
 
 const bodies = []
-for (let i = 0; i < 2; i++){
+for (let i = 0; i < 2; i++) {
     bodies.push(new Body(40))
 }
+const projectiles = []
 
 
 addEventListener("resize", resize);
@@ -150,27 +194,29 @@ function animate() {
     // view.arc(x, y, r, 0, Math.PI * 2);
     // view.fill();
 
-    for(const b of bodies) b.update();
-    for(const b of bodies) b.draw();
+    for (const b of bodies) b.update();
+    for (const b of bodies) b.draw();
+    for (const p of projectiles) p.update()
+    for (const p of projectiles) p.draw()
     triangle.update();
     triangle.draw();
     requestAnimationFrame(animate);
 }
 
 function checkBounce() {
-    if (y + r >= canvas.height){
+    if (y + r >= canvas.height) {
         y = canvas.height - r;
         dy *= -1;
     }
-    if (x + r >= canvas.width){
+    if (x + r >= canvas.width) {
         x = canvas.width - r;
         dx *= -1;
     };
-    if (y - r < 0){
-        y =  r;
+    if (y - r < 0) {
+        y = r;
         dy *= -1;
     };
-    if (x - r < 0){
+    if (x - r < 0) {
         x = r;
         dx *= -1;
     };
@@ -178,17 +224,17 @@ function checkBounce() {
 }
 
 
-function checkWrap(){
-    if (y - r >= canvas.height){
+function checkWrap() {
+    if (y - r >= canvas.height) {
         y = -r;
     }
-    else if (x - r >= canvas.width){
+    else if (x - r >= canvas.width) {
         x = -r;
     }
-    else if (y + r <= 0 ){
+    else if (y + r <= 0) {
         y = canvas.height + r
     }
-    else if (x + r <= 0 ){
+    else if (x + r <= 0) {
         x = canvas.width + r
     }
 }
@@ -196,20 +242,20 @@ animate();
 
 
 function rotatePoint(px, py, ox, oy, angleRadians) {
-  // Convert angle from degrees to radians
- 
+    // Convert angle from degrees to radians
 
-  // Translate point to origin
-  const translatedX = px - ox;
-  const translatedY = py - oy;
 
-  // Apply rotation
-  const rotatedX = translatedX * Math.cos(angleRadians) - translatedY * Math.sin(angleRadians);
-  const rotatedY = translatedX * Math.sin(angleRadians) + translatedY * Math.cos(angleRadians);
+    // Translate point to origin
+    const translatedX = px - ox;
+    const translatedY = py - oy;
 
-  // Translate back
-  const finalX = rotatedX + ox;
-  const finalY = rotatedY + oy;
+    // Apply rotation
+    const rotatedX = translatedX * Math.cos(angleRadians) - translatedY * Math.sin(angleRadians);
+    const rotatedY = translatedX * Math.sin(angleRadians) + translatedY * Math.cos(angleRadians);
 
-  return { x: finalX, y: finalY };
+    // Translate back
+    const finalX = rotatedX + ox;
+    const finalY = rotatedY + oy;
+
+    return { x: finalX, y: finalY };
 }
