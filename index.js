@@ -30,7 +30,9 @@ class Keyboard {
     static get fire() {
         return !!Keyboard.keyOnce('Space')
     }
-
+    static get force(){
+        return !!Keyboard.keys.KeyW | !!Keyboard.keys.Enter
+    }
 }
 
 class Body {
@@ -94,6 +96,8 @@ class Triangle {
         this.dx = 0
         this.dy = 0
         this.angle = 0
+        this.power = 0.01
+        this.maxSpeed = 2
     }
     draw() {
         const originalX = this.x
@@ -117,6 +121,35 @@ class Triangle {
         view.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         view.fill()
     }
+    force(){
+        // const currentSpeed = Math.sqrt(this.dx**2 + this.dy**2)
+        const ax = Math.cos(this.angle - Math.PI/2) * this.power
+        const ay = Math.sin(this.angle - Math.PI/2) * this.power
+        const dx = this.dx + ax
+        const dy = this.dy + ay
+        const newSpeed = Math.hypot(dx, dy)
+        if (newSpeed <= this.maxSpeed){
+            this.dx = dx
+            this.dy = dy
+        }
+
+    }
+
+    checkWrap() {
+        if (this.y - this.radius >= canvas.height) {
+            this.y = -this.radius;
+        }
+        else if (this.x - this.radius >= canvas.width) {
+            this.x = -this.radius;
+        }
+        else if (this.y + this.radius <= 0) {
+            this.y = canvas.height + this.radius
+        }
+        else if (this.x + this.radius <= 0) {
+            this.x = canvas.width + this.radius
+        }
+    }
+
     update() {
         if (Keyboard.right) this.angle += 0.05
         if (Keyboard.left) this.angle -= 0.05
@@ -124,9 +157,17 @@ class Triangle {
             const projectile = new Projectile(this.x, this.y, this.angle)
             projectiles.push(projectile)
         }
+        if (Keyboard.force) {
+            this.force()
+        }
+        else if (Math.hypot(this.dx, this.dy) > 0){
+            this.dx *= 0.995
+            this.dy *= 0.995
+        }
+        this.x += this.dx
+        this.y += this.dy
+        this.checkWrap()
     }
-
-
 };
 
 class Projectile {
@@ -223,21 +264,6 @@ function checkBounce() {
 
 }
 
-
-function checkWrap() {
-    if (y - r >= canvas.height) {
-        y = -r;
-    }
-    else if (x - r >= canvas.width) {
-        x = -r;
-    }
-    else if (y + r <= 0) {
-        y = canvas.height + r
-    }
-    else if (x + r <= 0) {
-        x = canvas.width + r
-    }
-}
 animate();
 
 
